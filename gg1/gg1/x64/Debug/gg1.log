@@ -1,0 +1,6 @@
+﻿  gg.cpp
+C:\Users\benda\source\repos\gg1\codeFiles\gg.cpp(155,25): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\Users\benda\source\repos\gg1\codeFiles\gg.cpp(252,62): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+  main.cpp
+  Generating Code...
+  gg1.vcxproj -> C:\Users\benda\source\repos\gg1\x64\Debug\gg1.exe

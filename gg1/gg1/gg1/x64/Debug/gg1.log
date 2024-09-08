@@ -1,0 +1,17 @@
+﻿  gg.cpp
+C:\Users\benda\Documents\code\wannacary\gg.cpp(154,25): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\Users\benda\Documents\code\wannacary\gg.cpp(251,62): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+  main.cpp
+  Generating Code...
+gg.obj : error LNK2019: unresolved external symbol connect referenced in function "unsigned __int64 __cdecl cnnect_to_server(void)" (?cnnect_to_server@@YA_KXZ)
+gg.obj : error LNK2019: unresolved external symbol htons referenced in function "unsigned __int64 __cdecl cnnect_to_server(void)" (?cnnect_to_server@@YA_KXZ)
+gg.obj : error LNK2019: unresolved external symbol inet_addr referenced in function "unsigned __int64 __cdecl cnnect_to_server(void)" (?cnnect_to_server@@YA_KXZ)
+gg.obj : error LNK2019: unresolved external symbol send referenced in function "bool __cdecl send_data_to_server(unsigned __int64,int,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >)" (?send_data_to_server@@YA_N_KHV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z)
+gg.obj : error LNK2019: unresolved external symbol socket referenced in function "unsigned __int64 __cdecl cnnect_to_server(void)" (?cnnect_to_server@@YA_KXZ)
+gg.obj : error LNK2019: unresolved external symbol WSAStartup referenced in function "unsigned __int64 __cdecl cnnect_to_server(void)" (?cnnect_to_server@@YA_KXZ)
+gg.obj : error LNK2019: unresolved external symbol WSACleanup referenced in function "unsigned __int64 __cdecl cnnect_to_server(void)" (?cnnect_to_server@@YA_KXZ)
+gg.obj : error LNK2019: unresolved external symbol __imp_InternetOpenW referenced in function "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl fetch_ip_address(void)" (?fetch_ip_address@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ)
+gg.obj : error LNK2019: unresolved external symbol __imp_InternetCloseHandle referenced in function "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl fetch_ip_address(void)" (?fetch_ip_address@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ)
+gg.obj : error LNK2019: unresolved external symbol __imp_InternetOpenUrlW referenced in function "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl fetch_ip_address(void)" (?fetch_ip_address@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ)
+gg.obj : error LNK2019: unresolved external symbol __imp_InternetReadFile referenced in function "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl fetch_ip_address(void)" (?fetch_ip_address@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ)
+C:\Users\benda\source\repos\gg1\gg1\x64\Debug\gg1.exe : fatal error LNK1120: 11 unresolved externals
