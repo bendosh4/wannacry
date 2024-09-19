@@ -1,0 +1,14 @@
+C:\Users\benda\source\repos\gg1\wannacry\obj\Debug\wannacry.csproj.AssemblyReference.cache
+C:\Users\benda\source\repos\gg1\wannacry\obj\Debug\MainWindow.g.cs
+C:\Users\benda\source\repos\gg1\wannacry\obj\Debug\App.g.cs
+C:\Users\benda\source\repos\gg1\wannacry\obj\Debug\wannacry_MarkupCompile.cache
+C:\Users\benda\source\repos\gg1\wannacry\bin\Debug\wannacry.exe.config
+C:\Users\benda\source\repos\gg1\wannacry\bin\Debug\wannacry.exe
+C:\Users\benda\source\repos\gg1\wannacry\bin\Debug\wannacry.pdb
+C:\Users\benda\source\repos\gg1\wannacry\obj\Debug\MainWindow.baml
+C:\Users\benda\source\repos\gg1\wannacry\obj\Debug\wannacry.g.resources
+C:\Users\benda\source\repos\gg1\wannacry\obj\Debug\wannacry.Properties.Resources.resources
+C:\Users\benda\source\repos\gg1\wannacry\obj\Debug\wannacry.csproj.GenerateResource.cache
+C:\Users\benda\source\repos\gg1\wannacry\obj\Debug\wannacry.csproj.CoreCompileInputs.cache
+C:\Users\benda\source\repos\gg1\wannacry\obj\Debug\wannacry.exe
+C:\Users\benda\source\repos\gg1\wannacry\obj\Debug\wannacry.pdb
